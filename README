@@ -1,0 +1,28 @@
+HP545xx firmware toolset
+************************
+
+This is collection of tools for reverse engineering firmware images for
+HP54520A, HP54522A, HP54540A and HP54542A oscilloscopes. The tools give
+you possibility to extract ROM/SYSTEM images from the firmware images
+that are as of this writing still available from Keysight web site.
+Original firmware images are LIF images, so lifutils (written by Tony
+Duell) are the first step for extracting the files from LIF images.
+The lifutils can be found on Internet.
+
+       LIF image
+|-----------------------|
+|                       |
+|        WS_FILE        |
+| |-------------------| |
+| |                   | |
+| | |---------------| | |
+| | |   section 1   | | |
+| | |---------------| | |
+| | |---------------| | |
+| | |   section 2   | | |
+| | | ------------- | | |
+| | | |sub_section| | | |
+| | | ------------- | | |
+| | |---------------| | |
+| |-------------------| |
+|-----------------------|
