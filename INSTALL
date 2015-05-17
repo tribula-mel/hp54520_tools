@@ -1,1 +1,4 @@
-This software doesn't have any dependencies. I used Ubuntu 14.04 to compile it. Just type "make"
+This software doesn't have any dependencies. I used 32-bit and 64-bit
+Ubuntu 14.04 to compile it. Just type "make". Currently there is no
+install target, you could copy the cretated executables in the wanted
+path.

@@ -5,9 +5,9 @@ This is collection of tools for reverse engineering firmware images for
 HP54520A, HP54522A, HP54540A and HP54542A oscilloscopes. The tools give
 you possibility to extract ROM/SYSTEM images from the firmware images
 that are as of this writing still available from Keysight web site.
-Original firmware images are LIF images, so lifutils (written by Tony
+Original firmware images are LIF images, so lif_utils (written by Tony
 Duell) are the first step for extracting the files from LIF images.
-The lifutils can be found on Internet.
+The lif_utils can be found on Internet.
 
        LIF image
 |-----------------------|
@@ -26,3 +26,100 @@ The lifutils can be found on Internet.
 | | |---------------| | |
 | |-------------------| |
 |-----------------------|
+
+
+Tools available
+***************
+
+Following tools are currently available in the tool-set:
+
+   1) lif_convert
+   2) extract_sections
+   3) extract_subsection
+   4) recreate_wsfile
+   5) generate_lif
+
+All the tools have built-in help message, though I might write man pages some
+time in the future.
+
+
+Usage
+*****
+
+The above tools should be used together with lif_utils. There are two firmware
+version provided by Keysight namely V310 and VT333. When unpacked both versions
+carry ROM and SYSTEM files. These files are LIF files (Logical Interchange
+Format) created by HP. In order to extract WS_FILE from ROM or SYSTEM LIF file
+lifget tool from lif_utils should be used first:
+
+   lifget -f ROM WS_FILE ws_file.out_rom
+   lifget -f SYSTEM WS_FILE ws_file.out_system
+
+The ws_file.out_rom/system files are the output and represent the contents
+of embedded WS_FILE. In order to examine contents of a LIF file use following
+command (again lif_utils):
+
+   lifdir -f SYSTEM
+
+Now when we have WS_FILE contents we should proceed to use HP545XX tools.
+WS_FILE carries the data/code in sections each having 256 bytes, with last
+section usually being shorter. First two bytes of the section represent the
+length (big endian format) which is for the most time 0x00fe. As noted
+last section is usually shorter. Odd length values introduce one additional
+byte which should be added to the last section and this byte is ignored
+(not sure what is the purpose for adding such a byte). WS_FILE is terminated
+with 0xffff and the rest of last section is padded up to 256 bytes with
+some random data. In order to extract data/code lif_convert tool should be
+used:
+
+   lif_convert ws_file.out_rom rom.conv
+   lif_convert ws_file.out_system system.conv
+
+We have now data/code files. There is some structure to these files. Both files
+contain a header and two sections. Internal format is big endian. The header
+starts with 4 bytes overall file length followed by 32 byte string (not null
+terminated) followed by the 4 byte code starting point. Then we have section
+1 data namely 4 byte FLASH ROM loading address, followed by 4 byte section 1
+length, followed by section 1 data/code. At the end of section 1 we have
+two byte checksum (CRC16). At this point section 2 starts which has the same
+structure. The last section is "NULL" section (8 zero bytes). In order to
+hack on the firmware images we need to extract the sections (remember that
+both sections have checksum at the end):
+
+   extract_sections rom.conv
+   extract_sections system.conv
+
+In both cases two files will be created with the file names representing
+available sections and loading addresses. Some useful data will be printed
+out during the process. Now, we could do some hacking :) For completeness
+purposes one more tool is provided which extracts subsection for section 2:
+
+   extract_subsection <section_2_file_name>
+
+The system's section 2 contains a subsection that carries a kind of a jump
+table. This is useful to have when looking at the code, otherwise I don't
+envision that changes/hacks to the table are needed.
+In order to recreate WS_FILE for either ROM or SYSTEM image we should use
+following tool:
+
+   recreate_wsfile [-r] [-t] sec1 sec1_csum sec2 sec2_csum
+
+where -r should be used in case of ROM image, -t in case of VT3.33 version.
+The sec1/sec2 should be files that carry section 1 and section 2 respectively,
+the sec1_csum/sec2_csum are CRC16 checksums for section1/2 respectively. The
+checksums are accepted in hex format only (for example 0xba70).
+I use jacksum to calculate the checksum:
+
+   jacksum -x -a crc16 <file_name>
+
+The jacksum is easily installable/available under Debian/Ubuntu systems.
+The last step is to convert recreated WS_FILE into LIF format. The lif_utils
+do not offer such a tool, so I needed to write one. The usage is:
+
+   generate_lif file_name
+
+Please note that the above tool is not generic lif file creator, it doesn't
+understand LIF format fully, so meant only for the oscilloscope firmware
+file as such.
+Please note that there is possibility of bricking the oscilloscope when hacked
+firmware is used, so use the above regenerate tools at your own risk.
