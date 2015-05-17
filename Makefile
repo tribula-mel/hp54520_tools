@@ -16,13 +16,13 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 CC=gcc
-CFLAGS=-c -Wall
+CFLAGS=-c -Wall -g
 LDFLAGS=
 SOFLAFS =
 SHARED = 
 LDSHARED =
 
-all: lif_convert extract_sections extract_subsection
+all: lif_convert extract_sections extract_subsection recreate_wsfile
 
 lif_convert: lif_convert.o
 	$(CC) lif_convert.o -o lif_convert $(LDFLAGS)
@@ -42,7 +42,13 @@ extract_subsection: extract_subsection.o
 extract_subsection.o: extract_subsection.c
 	$(CC) $(CFLAGS) extract_subsection.c
 
+recreate_wsfile: recreate_wsfile.o
+	$(CC) recreate_wsfile.o -o recreate_wsfile $(LDFLAGS)
+
+recreate_wsfile.o: recreate_wsfile.c
+	$(CC) $(CFLAGS) recreate_wsfile.c
+
 clean:
 	rm -rf core cscope.* *.o lif_convert extract_sections \
-	extract_subsection
+	extract_subsection recreate_wsfile
 
