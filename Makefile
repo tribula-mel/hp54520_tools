@@ -22,7 +22,8 @@ SOFLAFS =
 SHARED = 
 LDSHARED =
 
-all: lif_convert extract_sections extract_subsection recreate_wsfile
+all: lif_convert extract_sections extract_subsection recreate_wsfile \
+     generate_lif
 
 lif_convert: lif_convert.o
 	$(CC) lif_convert.o -o lif_convert $(LDFLAGS)
@@ -48,7 +49,13 @@ recreate_wsfile: recreate_wsfile.o
 recreate_wsfile.o: recreate_wsfile.c
 	$(CC) $(CFLAGS) recreate_wsfile.c
 
+generate_lif: generate_lif.o
+	$(CC) generate_lif.o -o generate_lif $(LDFLAGS)
+
+generate_lif.o: generate_lif.c
+	$(CC) $(CFLAGS) generate_lif.c
+
 clean:
 	rm -rf core cscope.* *.o lif_convert extract_sections \
-	extract_subsection recreate_wsfile
+	extract_subsection recreate_wsfile generate_lif
 
